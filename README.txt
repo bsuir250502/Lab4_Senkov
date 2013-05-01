@@ -5,9 +5,13 @@
 
   Input of information :
 
-      tree.
+  	* by-character input.
+  	* for input stop press 's'.
+  	* checking lines.
 
   And output:
-  	  all info.   		
+  	
+  	* in first order(input order).
+  	* in modify order.   		
    
 ===============================================================
