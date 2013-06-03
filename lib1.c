@@ -6,17 +6,9 @@
 /* function for input and valid infomation (srting). */
 void str_input(char *information, char *input_text, int max_number_of_symbols)
 {
-    while (1) {
-        printf("%s", information);
-        fgets(input_text, max_number_of_symbols, stdin);
-        if (input_text[0] == '\n' || input_text[0] == ' ') {
-            puts("Invalid input, try again.");
-        }
-        else {
-            input_text[strlen(input_text)-1]='\0';
-            break;
-        }
-    }
+    printf("%s", information);
+    fgets(input_text, max_number_of_symbols, stdin);
+    input_text[strlen(input_text)-1]='\0';
 }
 
 /* function for input and valid infomation (int). */

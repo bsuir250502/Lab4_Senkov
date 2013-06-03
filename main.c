@@ -5,6 +5,13 @@
 
 #define STR_MAX 15
 
+struct brackets {
+    int in_process;
+    int start;
+    int checked;
+    int last;
+} brack;
+
 typedef struct line {
     char symbol;
     struct line *next;
@@ -25,9 +32,11 @@ tree_t *add_tree_elem(tree_t *n_elem, int elem_num);
 int compare_elems(tree_t **tree, tree_t **elem, tree_t **n_elem, int elem_num);
 int line_filling(line_t **line);
 int check_line(line_t *line, int symbol_num);
+void check_brackets(char *st_line, int first, int last);
 tree_t *elems_reversal(tree_t *tree);
 void revers(tree_t **tree, int symbol_num, line_t *line);
 void see_tree(tree_t *tree);
+void free_tree(tree_t *tree);
 
 int main(int argc, char **argv)
 {
@@ -43,6 +52,7 @@ int main(int argc, char **argv)
     puts("\nReview of the tree (second order):");
     tree = elems_reversal(tree); 
     see_tree(tree);
+    free_tree(tree);
     return 0;
 }
 
@@ -55,6 +65,11 @@ tree_t *tree_filling(tree_t *tree)
     n_elem = NULL;
     tree = tree_creat(tree, elem_num);
     elem_num ++;
+    puts("For add one more elem, press '+' , or put something:");
+    gets(add_elem);
+    if (strcmp(add_elem, "+")) {
+        return tree;
+    }
     do {
         compare_elems(&tree, &elem, &n_elem, elem_num);
         str_input("\nFor add one more elem, press '+' , or put something:\n", add_elem, STR_MAX);
@@ -125,9 +140,9 @@ int line_filling(line_t **line)
         new_line = *line;
         symbol_num ++;
         if (getchar() == '\n') {
-            if((*line)->symbol == 's') {
+            if ((*line)->symbol == 's') {
                 puts("end of this line.");
-                break; 
+                break;    
             }
         }
     }
@@ -135,38 +150,62 @@ int line_filling(line_t **line)
     return (symbol_num - 1);
 }
 
-int check_line(line_t *line, int symbol_num)
+int check_line(line_t *input_line, int symbol_num)
 {
-    int i, j1, j2, j3, j4, j5, j6;
-    j1 = j2 = j3 = j4 = j5 = j6 = 0;
-    for (i = 1; i < symbol_num + 1; i++) {
-        if (line->symbol == '(') {
-            j1 = i;
-        }
-        if (line->symbol == ')') {
-            j2 = i;
-        }
-        if (line->symbol == '[') {
-            j3 = i;
-        }
-        if (line->symbol == ']') {
-            j4 = i;
-        }
-        if (line->symbol == '{') {
-            j5 = i;
-        }
-        if (line->symbol == '}') {
-            j6 = i;
-        }
-        line = line->next;
+    int i;
+    char st_line[symbol_num];
+    for (i = symbol_num ; i >0; i--) {
+        st_line[i] = input_line->symbol;
+        input_line = input_line->next;
     }
-    if (j1 > j2 || j3 > j4 || j5 > j6 || (j1 != 0 && j2 == 0)||
-       (j1 == 0 && j2 != 0)||(j3 == 0 && j4 != 0)||(j3 != 0 && j4 == 0)||
-       (j5 == 0 && j6 != 0)||(j5 != 0 && j6 == 0)) {
+    brack.start = 0;
+    brack.in_process = 0;
+    brack.checked = 0;
+    brack.last = symbol_num;
+    check_brackets(st_line, 1, symbol_num);
+    if (brack.checked == 0) {
         puts ("Wrong line. Try again.");
         return 0;
     }
     return 1;
+}
+
+void check_brackets(char *st_line, int first, int last)
+{
+    char close;
+    int i, from = first;
+    for (i = first; i <= last; i++) {
+        if ((st_line[i] == ')' || st_line[i] == '}' ||
+             st_line[i] == ']') && brack.start == 0) {
+            return;
+        }
+        if ((st_line[i] == '(' || st_line[i] == '{' 
+            || st_line[i] == '[') && brack.in_process == 0) {
+            brack.in_process = 1;
+            brack.start = 1;
+            from = i + 1;
+            if (st_line[i] == '(') {
+                close = ')';
+            }
+            else if (st_line[i] == '{') {
+                close = '}';
+            }
+            else {
+                close = ']';
+            }
+        }
+        if (st_line[i] == close) {
+            brack.in_process = 0;
+            brack.start = 0;
+            check_brackets(st_line, from , i - 1);
+        }
+        if (i == brack.last && brack.in_process == 0) {
+            brack.checked = 1;
+        }
+        if (i == last && brack.in_process == 1) {
+            return;
+        } 
+    }
 }
 
 tree_t *elems_reversal(tree_t *tree) 
@@ -232,5 +271,19 @@ void see_tree(tree_t *tree)
     }
     if (tree) {
         see_tree(tree->left);
+    }
+}
+
+void free_tree(tree_t *tree) 
+{
+    if (tree) {
+        free_tree(tree->right);
+    }
+    if (tree) {
+        free (tree->line);
+        free (tree);
+    } 
+    if (tree) {
+        free_tree(tree->left);
     }
 }
